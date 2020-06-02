@@ -126,16 +126,23 @@ Before we write the configuration we need the MySQL database password and some r
 
 .. code-block:: console
 
-  [isabell@stardust ~]$ my_print_defaults --defaults-file=~/.my.cnf client | grep -- --password | awk -F = '{ print $2 }'
+  [isabell@stardust ~]$ my_print_defaults --defaults-file=~/.my.cnf client | grep -- --password | awk --field-separator = '{ print $2 }'
   xG9MD-15A4aMGsln,MTr
   [isabell@stardust ~]$ 
 
-... and some random alpha-num chars for the security key.
+... and some random alpha-num chars for the security key. For this we pipe some random characters from the ``/dev/urandom`` device into the translate tool ``tr`` to delete the complementary of alpha-numeric characters until we have 32 characters.
 
 .. code-block:: console
 
-  [isabell@stardust ~]$ head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32 ; echo ''
-  dLlZz5DWrrH18TatZqgXHX0WHPWZgijH
+  [isabell@stardust ~]$ cat /dev/urandom | tr --delete --complement 'a-zA-Z0-9' | fold --width=32 | head --lines=1
+  SomeRandomCharactersyHxLQeGr976f
+  [isabell@stardust ~]$ 
+
+Create a custom directory.
+
+.. code-block:: console
+
+  [isabell@stardust ~]$ mkdir -p ~/gitea/custom/conf/
   [isabell@stardust ~]$ 
 
 The minimum set of ``~/gitea/custom/conf/app.ini`` is:
@@ -303,17 +310,17 @@ We generate a safe password for the admin user. For this we use ``head`` to pipe
 
 .. code-block:: console
 
-  [isabell@stardust ~]$ PWD=$(head /dev/urandom | tr --complement --delete A-Za-z0-9 | head --bytes=16 ; echo '')
+  [isabell@stardust ~]$ ADMPWD=$(head /dev/urandom | tr --complement --delete A-Za-z0-9 | head --bytes=16 ; echo '')
 
 Now we create an admin user via Gitea `command line <https://docs.gitea.io/en-us/command-line/#admin>`_. Gitea isn't allowing ``admin`` as name. We choose ``adminuser`` and the generated password from above. To ensure we remember the password beyond this installation session we store the password in a text file.
 
 .. code-block:: console
   
-  [isabell@stardust ~]$ ~/gitea/gitea admin create-user --username adminuser --password ${PWD} --email ${USER}@uber.space --admin
+  [isabell@stardust ~]$ ~/gitea/gitea admin create-user --username adminuser --password ${ADMPWD} --email ${USER}@uber.space --admin
   ...
   New user 'adminuser' has been successfully created!
   [isabell@stardust ~]$ echo "usr: adminuser" > ~/gitea/gitea-admin.txt
-  [isabell@stardust ~]$ echo "pwd: ${PWD}" >> ~/gitea/gitea-admin.txt
+  [isabell@stardust ~]$ echo "pwd: ${ADMPWD}" >> ~/gitea/gitea-admin.txt
   [isabell@stardust ~]$ 
 
 Gitea ssh setup (optional)
@@ -338,7 +345,7 @@ If we're using the same ssh key for auth to uberspace and Gitea, we need to modi
 
   command="if [ -t 0 ]; then bash; elif [[ \$SSH_ORIGINAL_COMMAND =~ ^(scp|rsync|mysqldump).* ]]; then eval \$SSH_ORIGINAL_COMMAND; else /home/isabell/gitea/gitea serv key-1 --config='/home/isabell/gitea/custom/conf/app.ini'; fi",no-port-forwarding,no-X11-forwarding,no-agent-forwarding ssh-...
 
-.. note:: Be careful to keep the key number ``key-X``, keep your ssh key and change the username isabell to yours.
+.. note:: Be careful to keep the key number ``key-X``, keep your key ``ssh-...`` and change the username isabell to yours.
 
 .. note:: You can still use the Uberspace dashboard_ to add ssh keys.
 
@@ -359,7 +366,7 @@ Finishing installation
 Uberspace daemon for Gitea
 ---------------------------
 
-Create a file ``~/etc/services.d/gitea.ini`` for the serive ...
+Create a file ``~/etc/services.d/gitea.ini`` for the service ...
 
 .. code-block:: ini
 
