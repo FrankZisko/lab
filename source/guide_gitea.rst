@@ -115,6 +115,10 @@ If the verification is fine, we get a ``gpg: Good signature from "Teabot <teabot
   [isabell@stardust ~]$ chmod u+x ~/gitea/gitea
   [isabell@stardust ~]$
 
+
+Configuration
+=============
+
 Gitea configuration file
 -------------------------
 
@@ -157,6 +161,8 @@ When using this, we have to finish the installation via gitea web service https:
 For more informations about the possibilities and configuration options see the Gitea documentation_ and the Gitea `configuration sample <https://github.com/go-gitea/gitea/blob/master/custom/conf/app.ini.sample>`_.
 
 .. note:: The minimum improvements are written in the sections of ``[database]``, ``[security]`` and ``[service]``.
+
+.. warning:: Replace ``isabell`` with your username, fill the database password ``PASSWD =`` with yours and enter the generated random into ``SECRET_KEY =``.
 
 .. code-block:: ini
 
@@ -259,7 +265,9 @@ We can install an extra `external rendering <https://docs.gitea.io/en-us/externa
   1 gem installed
   [isabell@stardust ~]$
 
-In this case we have to append the config file ``~/gitea/custom/conf/app.ini`` with:
+.. note:: Don't be irritated by the warning that the bin folder isn't in the path. Uberspace is taking care of it and provide it via ``/opt/uberspace/etc/isabell/binpaths/ruby/asciidoctor``. You can check with ``[isabell@stardust ~]$ which asciidoctor``.
+
+Now we have to append the config file ``~/gitea/custom/conf/app.ini`` with:
 
 .. code-block:: ini
 
@@ -291,7 +299,7 @@ Above we locked the registration and the web installation feature, so this servi
 Gitea admin user
 ----------------
 
-We generate a safe password for the admin user. For this we use ``head`` to pipe some random characters from the ``/dev/urandom`` device into the translate tool ``tr`` to delete the complementary of alpha-numeric characters until we have 16 characters and then print it to the bash output:
+We generate a safe password for the admin user. For this we use ``head`` to pipe some random characters from the ``/dev/urandom`` device into the translate tool ``tr`` to delete the complementary of alpha-numeric characters until we have 16 characters and then write into a variable to use it in the next two steps.
 
 .. code-block:: console
 
@@ -318,23 +326,23 @@ Gitea can manage the ssh keys. To use this feature we have to link the ssh folde
   [isabell@stardust ~]$ ln -s ~/.ssh ~/gitea/.ssh
   [isabell@stardust ~]$ 
 
-Now our Gitea users can add their ssh keys via the menu in the up right corner: ``->`` settings ``->`` tab: SSH/GPG Keys ``->`` Add Key. Gitea is automatically writing a ssh key command into the ``~/.ssh/authorized_keys`` file. The key line is something similar like:
+Now our Gitea users can add their ssh keys via the menu in the up right corner: ``->`` settings ``->`` tab: SSH/GPG Keys ``->`` Add Key. Gitea is automatically writing a ssh key command into the ``/home/isabell/.ssh/authorized_keys`` file. The key line is something similar like:
 
 .. code-block:: config
 
   command="/home/isabell/gitea/gitea --config='/home/isabell/gitea/custom/conf/app.ini' serv key-1",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 AAAAC... youruser@yourhost
 
-If we're using the same ssh key for auth to uberspace and Gitea, we need to modify the server ``~/.ssh/authorized_keys`` file.
+If we're using the same ssh key for auth to uberspace and Gitea, we need to modify the server ``/home/isabell/.ssh/authorized_keys`` file.
 
 .. code-block:: config
 
   command="if [ -t 0 ]; then bash; elif [[ \$SSH_ORIGINAL_COMMAND =~ ^(scp|rsync|mysqldump).* ]]; then eval \$SSH_ORIGINAL_COMMAND; else /home/isabell/gitea/gitea serv key-1 --config='/home/isabell/gitea/custom/conf/app.ini'; fi",no-port-forwarding,no-X11-forwarding,no-agent-forwarding ssh-...
 
-.. note:: Be careful to keep the key number ``key-X``, keep your ssh key and change the user name to yours.
+.. note:: Be careful to keep the key number ``key-X``, keep your ssh key and change the username isabell to yours.
 
 .. note:: You can still use the Uberspace dashboard_ to add ssh keys.
 
-To interact with Gitea at our local machine like ``git clone isabell@isabell.uber.space:giteauser/somerepo.git`` we configure the ``~/.ssh/config`` file for our local machine with the git ssh key.
+To interact with Gitea at our local machine like ``git clone isabell@isabell.uber.space:giteauser/somerepo.git`` we configure the ``/home/localuser/.ssh/config`` file for our local machine with the git ssh key.
 
 .. code-block:: config
 
@@ -343,6 +351,10 @@ To interact with Gitea at our local machine like ``git clone isabell@isabell.ube
       User isabelle
       IdentityFile ~/.ssh/id_your_git_key
       IdentitiesOnly yes
+
+
+Finishing installation
+======================
 
 Uberspace daemon for Gitea
 ---------------------------
@@ -369,17 +381,16 @@ Uberspace web backend
   [isabell@stardust ~]$ uberspace web backend list
   [isabell@stardust ~]$ 
 
-.. note:: If we run the service under a domain subfolder aka prefix, you need to append the above command with the ``uberspace web backend set exampe.net/subfolder --http --port 9000 --remove-prefix`` option.
+.. note:: If we run the service under a domain subfolder aka prefix, you need to append the above command like ``uberspace web backend set exampe.net/subfolder --http --port 9000 --remove-prefix``.
 
 
-Finished
-========
+Done. We can point our browser to https://isabell.uber.space/.
 
-Done. Installed files and folders are:
+Installed files and folders are:
 
 * ``~/gitea``
 * ``~/etc/services.d/gitea.ini``
-* ``~/.gem/ruby/2.7.0/*/asciidoctor*``, if installed.
+* ``~/.gem/ruby/2.7.0/*/asciidoctor*``, if AsciiDoctor is installed.
 
 
 Updates
