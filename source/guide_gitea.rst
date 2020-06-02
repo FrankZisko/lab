@@ -291,11 +291,16 @@ Above we locked the registration and the web installation feature, so this servi
 Gitea admin user
 ----------------
 
-We create an admin user via Gitea `command line <https://docs.gitea.io/en-us/command-line/#admin>`_. Gitea isn't allowing ``admin`` as name. We choose ``adminuser`` and a generated password from ``/dev/urandom``. To ensure we remember the password beyond this installation session we store the password in a text file.
+We generate a safe password for the admin user. For this we use ``head`` to pipe some random characters from the ``/dev/urandom`` device into the translate tool ``tr`` to delete the complementary of alpha-numeric characters until we have 16 characters and then print it to the bash output:
+
+.. code-block:: console
+
+  [isabell@stardust ~]$ PWD=$(head /dev/urandom | tr --complement --delete A-Za-z0-9 | head --bytes=16 ; echo '')
+
+Now we create an admin user via Gitea `command line <https://docs.gitea.io/en-us/command-line/#admin>`_. Gitea isn't allowing ``admin`` as name. We choose ``adminuser`` and the generated password from above. To ensure we remember the password beyond this installation session we store the password in a text file.
 
 .. code-block:: console
   
-  [isabell@stardust ~]$ PWD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16 ; echo '')
   [isabell@stardust ~]$ ~/gitea/gitea admin create-user --username adminuser --password ${PWD} --email ${USER}@uber.space --admin
   ...
   New user 'adminuser' has been successfully created!
