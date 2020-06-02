@@ -154,9 +154,9 @@ When using this, we have to finish the installation via gitea web service https:
 * Naming the repositories path.
 * Set the eye-friendly dark theme as default theme, set mailing, set time and set logging options.
 
-For more informations about the possibilities and configuration options see the documentation_ and the gitea `configuration sample <https://github.com/go-gitea/gitea/blob/master/custom/conf/app.ini.sample>`_.
+For more informations about the possibilities and configuration options see the Gitea documentation_ and the Gitea `configuration sample <https://github.com/go-gitea/gitea/blob/master/custom/conf/app.ini.sample>`_.
 
-.. note:: The minimum improvements are written in the sections of database, security and service.
+.. note:: The minimum improvements are written in the sections of ``[database]``, ``[security]`` and ``[service]``.
 
 .. code-block:: ini
 
@@ -259,7 +259,7 @@ We can install an extra `external rendering <https://docs.gitea.io/en-us/externa
   1 gem installed
   [isabell@stardust ~]$
 
-In this case we have to append the connfig file ``~/gitea/custom/conf/app.ini``.
+In this case we have to append the config file ``~/gitea/custom/conf/app.ini`` with:
 
 .. code-block:: ini
 
@@ -291,7 +291,7 @@ Above we locked the registration and the web installation feature, so this servi
 Gitea admin user
 ----------------
 
-We create an admin user via Gitea `command line <https://docs.gitea.io/en-us/command-line/#admin>`_ . Gitea isn't allowing ``admin`` as name. We choose ``adminuser`` and a generated password from ``/dev/urandom``. To ensure we remember the password beyond this installation session we store the password in a text file.
+We create an admin user via Gitea `command line <https://docs.gitea.io/en-us/command-line/#admin>`_. Gitea isn't allowing ``admin`` as name. We choose ``adminuser`` and a generated password from ``/dev/urandom``. To ensure we remember the password beyond this installation session we store the password in a text file.
 
 .. code-block:: console
   
@@ -313,23 +313,13 @@ Gitea can manage the ssh keys. To use this feature we have to link the ssh folde
   [isabell@stardust ~]$ ln -s ~/.ssh ~/gitea/.ssh
   [isabell@stardust ~]$ 
 
-Now our users can add their ssh keys via the menu in the up right corner: ``->`` settings ``->`` tab: SSH/GPG Keys ``->`` Add Key. Gitea is automatically writing a ssh key command into the ``~/.ssh/authorized_keys`` file. The key line is something similar like:
+Now our Gitea users can add their ssh keys via the menu in the up right corner: ``->`` settings ``->`` tab: SSH/GPG Keys ``->`` Add Key. Gitea is automatically writing a ssh key command into the ``~/.ssh/authorized_keys`` file. The key line is something similar like:
 
 .. code-block:: config
 
   command="/home/isabell/gitea/gitea --config='/home/isabell/gitea/custom/conf/app.ini' serv key-1",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 AAAAC... youruser@yourhost
 
-To interact with gitea at you local machine like ``git clone isabell@isabell.uber.space:giteauser/somerepo.git`` we configure ``~/.ssh/config`` for your local machine with the git ssh key.
-
-.. code-block:: config
-
-  Host isabelle.uber.space
-      HostName isabelle.uber.space
-      User isabelle
-      IdentityFile ~/.ssh/id_your_git_key
-      IdentitiesOnly yes
-
-If we're using the same ssh key for auth to uberspace and for gitea service, we need to modify the server ``~/.ssh/authorized_keys`` file.
+If we're using the same ssh key for auth to uberspace and Gitea, we need to modify the server ``~/.ssh/authorized_keys`` file.
 
 .. code-block:: config
 
@@ -338,6 +328,16 @@ If we're using the same ssh key for auth to uberspace and for gitea service, we 
 .. note:: Be careful to keep the key number ``key-X``, keep your ssh key and change the user name to yours.
 
 .. note:: You can still use the Uberspace dashboard_ to add ssh keys.
+
+To interact with Gitea at our local machine like ``git clone isabell@isabell.uber.space:giteauser/somerepo.git`` we configure the ``~/.ssh/config`` file for our local machine with the git ssh key.
+
+.. code-block:: config
+
+  Host isabelle.uber.space
+      HostName isabelle.uber.space
+      User isabelle
+      IdentityFile ~/.ssh/id_your_git_key
+      IdentitiesOnly yes
 
 Uberspace daemon for Gitea
 ---------------------------
@@ -359,7 +359,7 @@ Uberspace web backend
 .. code-block:: console
 
   [isabell@stardust ~]$ uberspace web backend set / --http --port 9000
-  Set backend for isabell.uber.space/ to port 9000; please make sure something is listening!
+  Set backend for / to port 9000; please make sure something is listening!
   You can always check the status of your backend using "uberspace web backend list".
   [isabell@stardust ~]$ uberspace web backend list
   [isabell@stardust ~]$ 
@@ -371,9 +371,10 @@ Finished
 ========
 
 Done. Installed files and folders are:
+
 * ``~/gitea``
 * ``~/etc/services.d/gitea.ini``
-* ``~/.gem/ruby/2.7.0/*/asciidoctor*``
+* ``~/.gem/ruby/2.7.0/*/asciidoctor*``, if installed.
 
 
 Updates
@@ -384,7 +385,7 @@ Updates
 To update do:
 
 * Stop the application ``supervisorctl stop gitea``
-* Do the download and verify part from above.
+* Do the *download and verify* part from above.
 * Check if you have to modify the config file. (See documentation_ and the `file sample <https://github.com/go-gitea/gitea/blob/master/custom/conf/app.ini.sample>`_.)
 * Do the application migration: ``~/gitea/gitea migrate``
 * Start the application ``supervisorctl start gitea``
