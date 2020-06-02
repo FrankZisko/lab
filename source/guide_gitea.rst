@@ -47,13 +47,12 @@ We can use the uberspace or your own domain:
 Installation
 ============
 
-Download, verify and place the files
-------------------------------------
+Download and verify
+-------------------
 
 Check current version of Gitea at releases_ page.
 
 .. code-block:: console
-   :emphasize-lines: 1,2,3,16
 
   [isabell@stardust ~]$ VERSION=1.11.5
   [isabell@stardust ~]$ mkdir -p ~/gitea
@@ -87,7 +86,6 @@ Check current version of Gitea at releases_ page.
 We use ``gpg`` to download the pgp key and verify our download.
 
 .. code-block:: console
- :emphasize-lines: 1,13
 
   [isabell@stardust ~]$ gpg --keyserver keys.gnupg.net --recv-keys 7C9E68152594688862D62AF62D9AE806EC1592E2
   gpg: directory `/home/isabell/.gnupg' created
@@ -110,7 +108,7 @@ We use ``gpg`` to download the pgp key and verify our download.
        Subkey fingerprint: CC64 B1DB 67AB BEEC AB24  B645 5FC3 4632 9753 F4B0
   [isabell@stardust ~]$ 
 
-If the verification is fine, we get a ``gpg: Good signature from "Teabot <teabot@gitea.io>"`` line. Now make the bin executeable.
+If the verification is fine, we get a ``gpg: Good signature from "Teabot <teabot@gitea.io>"`` line and we make the bin executeable.
   
 .. code-block:: console
 
@@ -128,7 +126,7 @@ Before we write the configuration we need the MySQL database password and some r
   xG9MD-15A4aMGsln,MTr
   [isabell@stardust ~]$ 
 
-... and some random alphanum chars for the security key.
+... and some random alpha-num chars for the security key.
 
 .. code-block:: console
 
@@ -136,17 +134,31 @@ Before we write the configuration we need the MySQL database password and some r
   dLlZz5DWrrH18TatZqgXHX0WHPWZgijH
   [isabell@stardust ~]$ 
 
-We set the config file with some improvements to the minimum set. 
-
-* As security feature we disallow registration and lock the web installation. 
-* We change the default password complexity to allow well to remember and secure passwords. See `XKCD No. 936 <https://xkcd.com/936/>`_  and `Explained XKCD No. 936 <https://explainxkcd.com/wiki/index.php/936:_Password_Strength>`_ for the math behind it. ;-)
-
-For more informations about the possibilities and configuration options see the Documentation_ and the gitea `Configuration sample <https://github.com/go-gitea/gitea/blob/master/custom/conf/app.ini.sample>`_.
-
-Create the confioguration file ``~/gitea/custom/conf/app.ini`` and 
+The minimum set of ``~/gitea/custom/conf/app.ini`` is:
 
 .. code-block:: ini
-:emphasize-lines: 26,37
+
+  [server]
+  HTTP_PORT = 9000
+  DOMAIN = isabell.uber.space
+  ROOT_URL = https://%(DOMAIN)s
+
+  [service]
+  DISABLE_REGISTRATION = true
+
+When using this, we have to finish the installation via gitea web service https://isabell.uber.space/install. This is exposed without any password request. We improve the configiguration with some modifications, e.g.:
+
+* Filling the database access data that we would otherwise enter in the web installation step. (``[database]`` section)
+* As security feature we lock the web installation and change the default password complexity to allow well to remember and secure passwords. (See `XKCD No. 936 <https://xkcd.com/936/>`_  and `Explained XKCD No. 936 <https://explainxkcd.com/wiki/index.php/936:_Password_Strength>`_ for the math behind it. 😉 ``[security]`` section)
+* We disallow public registration and set some privacy settings. (``[service]`` section)
+* Naming the repositories path.
+* Set the eye-friendly dark theme as default theme, set mailing, set time and set logging options.
+
+For more informations about the possibilities and configuration options see the documentation_ and the gitea `configuration sample <https://github.com/go-gitea/gitea/blob/master/custom/conf/app.ini.sample>`_.
+
+.. note:: The minimum improvements are written in the sections of database, security and service.
+
+.. code-block:: ini
 
   APP_NAME = Gitea
   RUN_USER = isabell
@@ -172,7 +184,7 @@ Create the confioguration file ``~/gitea/custom/conf/app.ini`` and
   HOST              = 127.0.0.1:3306
   NAME              = isabell_gitea
   USER              = isabell
-  PASSWD            = <MariaDB-PASSWORD>
+  PASSWD            = <MySQL_PASSWORD>
   SSL_MODE          = disable
   
   [security]
@@ -198,7 +210,7 @@ Create the confioguration file ``~/gitea/custom/conf/app.ini`` and
   ENABLE_NOTIFY_MAIL                     = false
   SHOW_MILESTONES_DASHBOARD_PAGE         = true
   DEFAULT_ALLOW_CREATE_ORGANIZATION      = true
-  DEFAULT_ORG_VISIBILITY                 = private ; [public,limited,private]
+  DEFAULT_ORG_VISIBILITY                 = private ; [public, limited, private]
   DEFAULT_ORG_MEMBER_VISIBLE             = false
   DEFAULT_ENABLE_TIMETRACKING            = true
   DEFAULT_KEEP_EMAIL_PRIVATE             = true
@@ -209,13 +221,13 @@ Create the confioguration file ``~/gitea/custom/conf/app.ini`` and
   DEFAULT_PRIVATE = private ; [last, private, public]
 
   [ui]
-  THEMES                  = gitea,arc-green
-  DEFAULT_THEME           = arc-green
+  THEMES        = gitea,arc-green
+  DEFAULT_THEME = arc-green
 
   [mailer]
-  ENABLED        = true
-  MAILER_TYPE    = sendmail
-  FROM           = isabell@uber.space
+  ENABLED     = true
+  MAILER_TYPE = sendmail
+  FROM        = isabell@uber.space
   
   [time]
   FORMAT              = 2006-01-02 15:04:05
@@ -247,7 +259,7 @@ We can install an extra `external rendering <https://docs.gitea.io/en-us/externa
   1 gem installed
   [isabell@stardust ~]$
 
-We append the connfig file ``~/gitea/custom/conf/app.ini``.
+In this case we have to append the connfig file ``~/gitea/custom/conf/app.ini``.
 
 .. code-block:: ini
 
@@ -260,27 +272,26 @@ We append the connfig file ``~/gitea/custom/conf/app.ini``.
 Gitea initalization
 -------------------
 
-Above we locked the registration and the web installation feature, so this service will never be exposed in an unsecure way to the internet. But we have to do the provided steps to create the database layout and generate security keys manually.
+Above we locked the registration and the web installation feature, so this service will never be exposed in an unsecure way to the internet. So we have to do the provided steps to create the database layout and generate security keys manually.
 
 .. code-block:: console
   
-  [isabell@stardust ~]$ cd ~/gitea
   [isabell@stardust ~]$ ~/gitea/gitea migrate
-  ... a lot of console output abput the database commands.
-  [isabell@stardust ~]$ ~/gitea/gitea generate secret INTERNAL_TOKEN
-  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE1OTEwNDAyNTB9.xYynv0JXwO-aqE5XEkGZE8mEeiQEOl-rU0JXpdPbLck
+  ... a lot of console output about the database commands.
+  [isabell@stardust ~]$ ~/gitea/gitea generate secret INTERNAL_TOKEN 
+  Some-Random-Characters-eyJhbUNIn6CJ9.eyJuYmYiOjE1OTEwNDAyNTB9.xYynv0JXwO-aqE5XEkGZE8mEeiQEOl-rU0JXpdPbLck
   [isabell@stardust ~]$ ~/gitea/gitea generate secret SECRET_KEY 
-  Mxvg1ugFupetV4gWPrNeqxyomddgYYpZTiMbrtBtgHU1f8ASXvS9Tlx6ETYiCwbJ
+  Some-Random-Characters-omddgYYpZTiMbrtBtgHU1f8ASXvS9Tlx6ETYiCwbJ
   [isabell@stardust ~]$ ~/gitea/gitea generate secret JWT_SECRET 
-  NmpTKgTFMUbfLoRvL-BXs-dqRsvc0BtKZRmNvbo22a8
+  Some-Random-Characters-qRsvc0BtKZRmNvbo22a8
   [isabell@stardust ~]$ ~/gitea/gitea generate secret LFS_JWT_SECRET 
-  obmr9lMfxr4X-218w4vn1U_Lj7hGewx62tFGHZwRsVc
+  Some-Random-Characters-Lj7hGewx62tFGHZwRsVc
   [isabell@stardust ~]$ 
 
 Gitea admin user
 ----------------
 
-We create an admin user via Gitea `command line <https://docs.gitea.io/en-us/command-line/#admin>`_ . They aren't allowing ``admin`` as name. So that we remember the password beyond the session, we store the password in a text file.
+We create an admin user via Gitea `command line <https://docs.gitea.io/en-us/command-line/#admin>`_ . Gitea isn't allowing ``admin`` as name. We choose ``adminuser`` and a generated password from ``/dev/urandom``. To ensure we remember the password beyond this installation session we store the password in a text file.
 
 .. code-block:: console
   
@@ -295,109 +306,72 @@ We create an admin user via Gitea `command line <https://docs.gitea.io/en-us/com
 Gitea ssh setup (optional)
 --------------------------
 
-Gitea can manage the ssh keys. To use this feature, we have to link the ssh-folder into the gitea folder.
+Gitea can manage the ssh keys. To use this feature we have to link the ssh folder into the gitea folder.
 
 .. code-block:: console
   
   [isabell@stardust ~]$ ln -s ~/.ssh ~/gitea/.ssh
   [isabell@stardust ~]$ 
 
-menu up right corner -> settings -> tab: SSH/GPG Keys -> Add Key
-If you add a ssh key in the user settings, Gitea is automatically writing a ssh key command into the ``~/.ssh/authorized_keys`` file. The key line is something similar like:
+Now our users can add their ssh keys via the menu in the up right corner: ``->`` settings ``->`` tab: SSH/GPG Keys ``->`` Add Key. Gitea is automatically writing a ssh key command into the ``~/.ssh/authorized_keys`` file. The key line is something similar like:
 
-.. code-block:: sh
+.. code-block:: config
 
   command="/home/isabell/gitea/gitea --config='/home/isabell/gitea/custom/conf/app.ini' serv key-1",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 AAAAC... youruser@yourhost
 
+To interact with gitea at you local machine like ``git clone isabell@isabell.uber.space:giteauser/somerepo.git`` we configure ``~/.ssh/config`` for your local machine with the git ssh key.
 
-  command="if [ -t 0 ]; then bash; elif [[ \$SSH_ORIGINAL_COMMAND =~ ^(scp|rsync|mysqldump).* ]]; then eval \$SSH_ORIGINAL_COMMAND; else ${APPPATH}/gitea serv key-1 --config='${APPPATH}/custom/conf/app.ini'; fi",no-port-forwarding,no-X11-forwarding,no-agent-forwarding ssh-...
+.. code-block:: config
 
-.. note:: You can still use the Uberspace Dashboard_ to add ssh keys.
+  Host isabelle.uber.space
+      HostName isabelle.uber.space
+      User isabelle
+      IdentityFile ~/.ssh/id_your_git_key
+      IdentitiesOnly yes
 
-.. warning:: Append the ssh authorized_keys file with your public key after ``ssh-``!
+If we're using the same ssh key for auth to uberspace and for gitea service, we need to modify the server ``~/.ssh/authorized_keys`` file.
 
-Uberspace service for Gitea
+.. code-block:: config
+
+  command="if [ -t 0 ]; then bash; elif [[ \$SSH_ORIGINAL_COMMAND =~ ^(scp|rsync|mysqldump).* ]]; then eval \$SSH_ORIGINAL_COMMAND; else /home/isabell/gitea/gitea serv key-1 --config='/home/isabell/gitea/custom/conf/app.ini'; fi",no-port-forwarding,no-X11-forwarding,no-agent-forwarding ssh-...
+
+.. note:: Be careful to keep the key number ``key-X``, keep your ssh key and change the user name to yours.
+
+.. note:: You can still use the Uberspace dashboard_ to add ssh keys.
+
+Uberspace daemon for Gitea
 ---------------------------
 
-.. code-block:: sh
+Create a file ``~/etc/services.d/gitea.ini`` for the serive ...
 
-  [isabell@stardust ~]$
-cat > /home/${USER}/etc/services.d/gitea.ini <<__EOF__
-[program:gitea]
-command=%(ENV_HOME)s/gitea/gitea web
-__EOF__
+.. code-block:: ini
 
+  [program:gitea]
+  command=%(ENV_HOME)s/gitea/gitea web
 
-  [isabell@stardust ~]$ supervisorctl reread
-  gitea: available
-  [isabell@stardust ~]$ supervisorctl update
-  gitea: added process group
-  [isabell@stardust ~]$ supervisorctl status
-  gitea                            RUNNING   pid 30178, uptime 0:00:03
-  [isabell@stardust ~]$ 
+.. include:: includes/supervisord.rst
 
-The status of gitea must be RUNNING. If not, check the configuration file ``~/gitea/custom/conf/app.ini``.
+.. note:: The status of gitea must be ``RUNNING``. If not, check the configuration file ``~/gitea/custom/conf/app.ini``.
 
 Uberspace web backend
 ---------------------
 
 .. code-block:: console
 
-  [isabell@stardust ~]$ uberspace web backend set isabell.uber.space --http --port 9000
-  Set backend for test0r.uber.space/ to port 9000; please make sure something is listening!
+  [isabell@stardust ~]$ uberspace web backend set / --http --port 9000
+  Set backend for isabell.uber.space/ to port 9000; please make sure something is listening!
   You can always check the status of your backend using "uberspace web backend list".
   [isabell@stardust ~]$ uberspace web backend list
   [isabell@stardust ~]$ 
 
-.. note:: If you run the service under a domain subfolder aka prefix, you need to append the above command with the ``--remove-prefix`` option.
-
-Uninstallation Script
-=====================
-
-.. code-block:: sh
-
-  cat > /home/${USER}/.gitea-uninstall.sh <<__EOF__
-  echo -e "\033[0;33mGitea uninstallation.\033[0m"
-  supervisorctl stop gitea
-  supervisorctl remove gitea
-  rm /home/${USER}/etc/services.d/gitea.ini
-  supervisorctl reread
-  supervisorctl update
-  supervisorctl status
-  uberspace web backend del ${APPWEBPAGE}
-  echo -e "\033[1;33mAttention\033[0m: Delete gitea line in \033[0;36m/home/${USER}/.ssh/authorized_keys\033[0m by yourself."
-  mysql -e "DROP DATABASE ${USER}_gitea"
-  gem uninstall asciidoctor -x
-  rm -rf ${APPPATH}
-  echo "If wanted, remove manually ${DOWNFILEPATH}."
-  echo "If wanted, remove manually ${CHECKFILEPATH}."
-  #rm /home/${USER}/.${APPNAME}-admin.txt
-  #rm /home/${USER}/.${APPNAME}-migrate.log
-  #rm /home/${USER}/.${APPNAME}-secret-INTERNAL_TOKEN.log
-  #rm /home/${USER}/.${APPNAME}-secret-SECRET_KEY.log
-  #rm /home/${USER}/.${APPNAME}-secret-JWT_SECRET.log
-  #rm /home/${USER}/.${APPNAME}-secret-LFS_JWT_SECRET.log
-  #rm /home/${USER}/.${APPNAME}-install-gems.log
-  #rm /home/${USER}/.${APPNAME}-uninstall.sh
-  if [ "${APPDOMAIN}" != "${USER}.uber.space" ]; then
-      echo "Maybe you want to delete used doamin ${APPDOMAIN}."
-      echo "    uberspace web domain del ${APPDOMAIN}"
-      echo "Maybe you're using this for other services."
-  fi
-  echo -e "\033[0;33mGitea uninstallation finished.\033[0m"
-  __EOF__
-  chmod u+x /home/${USER}/.gitea-uninstall.sh
-  echo " "
-  echo -e "\033[0;33mTo uninstall Gitea run:\033[0m"
-  echo -e "     \033[0;36m/home/${USER}/.gitea-uninstall.sh\033[0m"
+.. note:: If we run the service under a domain subfolder aka prefix, you need to append the above command with the ``uberspace web backend set exampe.net/subfolder --http --port 9000 --remove-prefix`` option.
 
 
 Finished
 ========
 
 Done. Installed files and folders are:
-* ``~/opt/gitea``
-* ``~/.gitea-*``
+* ``~/gitea``
 * ``~/etc/services.d/gitea.ini``
 * ``~/.gem/ruby/2.7.0/*/asciidoctor*``
 
@@ -410,24 +384,23 @@ Updates
 To update do:
 
 * Stop the application ``supervisorctl stop gitea``
-* Set the variables again.
-* Do the download, verify and place part from above.
-* To migrate the application redo the initalization from above.
+* Do the download and verify part from above.
+* Check if you have to modify the config file. (See documentation_ and the `file sample <https://github.com/go-gitea/gitea/blob/master/custom/conf/app.ini.sample>`_.)
+* Do the application migration: ``~/gitea/gitea migrate``
 * Start the application ``supervisorctl start gitea``
 * Check if the application is running ``supervisorctl status gitea``
 
-.. note:: If the service is not ``RUNNUNG`` check and compare your config file with the Gitea Documentation_ and the `file sample <https://github.com/go-gitea/gitea/blob/master/custom/conf/app.ini.sample>`_.
 
 .. _Gitea: https://gitea.io/en-US/
 .. _Gogs: https://gogs.io
-.. _Documentation: https://docs.gitea.io/en-us/config-cheat-sheet/
+.. _documentation: https://docs.gitea.io/en-us/config-cheat-sheet/
 .. _feed: https://github.com/go-gitea/gitea/releases.atom
 .. _releases: https://github.com/go-gitea/gitea/releases/latest
 .. _licence: https://github.com/go-gitea/gitea/blob/master/LICENSE
-.. _Dashboard: https://uberspace.de/dashboard/authentication
+.. _dashboard: https://uberspace.de/dashboard/authentication
 
 ----
 
-Tested with Gitea 1.11.5, Uberspace 7.6.0
+Tested with Gitea 1.11.5, Uberspace 7.6.2.0
 
 .. author_list::
