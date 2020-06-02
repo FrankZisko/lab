@@ -1,4 +1,4 @@
-.. author:: Frank ℤisko <https://frank.zisko.io>, luto <http://luto.at>
+.. author:: Frank ℤisko <https://frank.zisko.io>
 
 .. tag:: lang-go
 .. tag:: audience-developers
